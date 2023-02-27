@@ -6,7 +6,9 @@ import folium
 from folium.features import GeoJsonTooltip
 from streamlit_folium import st_folium
 
+########
 # DATA #
+########
 
 diabetes_df = pd.read_csv("diabetes_mortality_by_state.csv")
 diabetes_df.head()
@@ -17,16 +19,10 @@ geojson = gpd.read_file(r"gadm41_USA_2.json")
 # geojson = gpd.read_file('cb_2018_us_state_500k/cb_2018_us_state_500k.shp')
 geojson_no_id = geojson.to_json(drop_id=True)
 
-
-# geojson.head()
-# geojson=geojson[['coty_code','geometry']]
-# geojson=geojson[['geometry']]
-
-
+##########
 # INPUTS #
-# minAvgDeathRate, maxAvgDeathRate = 15, 39
+##########
 
-# minAvgDeathRate, maxAvgDeathRate = st.sidebar.select_slider(
 minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
     "Average Death Rate 💀 (%)",
     15, 39,
@@ -35,7 +31,7 @@ minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
 
 def remove_outside_of_min_and_max(rate):
     print("rate", rate)
-    if rate > minAvgDeathRate and rate < maxAvgDeathRate:
+    if rate >= minAvgDeathRate and rate <= maxAvgDeathRate:
         return True
     else:
         return False
@@ -44,15 +40,6 @@ filtered_death_rates = list(filter(remove_outside_of_min_and_max, diabetes_df['R
 # Convert to DataFrame
 filtered_death_rates = pd.DataFrame (filtered_death_rates, columns = ['RATE'])
 
-
-# st.write("avgDeathRate: ", avgDeathRate)
-st.write("diabetes_df['RATE']: ", diabetes_df['RATE'])
-st.write("minAvgDeathRate: ", minAvgDeathRate)
-st.write("maxAvgDeathRate: ", maxAvgDeathRate)
-st.write("filtered_death_rates: ", filtered_death_rates)
-st.write('The filtered letters are:')
-for s in filtered_death_rates:
-    st.write(s)
 
 st.sidebar.write("Add To Individual Lifestyles & Diabetes Graph")
 if st.sidebar.checkbox("🍎Fruits"):
@@ -100,20 +87,17 @@ st.sidebar.write("Effects of Lifestyle")
 lifeStyleChoice = st.sidebar.radio("Lifestyle:",
                                    ("Fruits", "Veggies")
                                    )
-
-
+#############
 # DASHBOARD #
+#############
 
 def display_map(df, deathRate):
     # df = df[(df['RATE'] == deathRate)]
     df['RATE'] = deathRate
-    st.write("df['RATE']: ", df['RATE'])
 
     map = folium.Map(location=[48, -102], zoom_start=3)
 
     # scale = (df['RATE']).quantile((0,0.1,0.75,0.9,0.98,1)).tolist()
-
-    st.write(df['RATE'].head())
 
     folium.Choropleth(
         geo_data=geojson_no_id,
@@ -132,8 +116,6 @@ def display_map(df, deathRate):
     
     st.write("Diabetes Map")
     st_map = st_folium(map, width=700, height=450)
-    st.write(df.head())
-    # st.write(df.columns())
 
 st.title("Interactive dashboard of diabetes in the US")
 
