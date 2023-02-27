@@ -1,5 +1,5 @@
 import streamlit as st
-import numpy
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 import folium
@@ -9,6 +9,9 @@ from streamlit_folium import st_folium
 ########
 # DATA #
 ########
+
+diabetes_binary_df = pd.read_csv("diabetes_binary_split_health_indicators.csv")
+diabetes_binary_df.head()
 
 diabetes_df = pd.read_csv("diabetes_mortality_by_state.csv")
 diabetes_df.head()
@@ -38,7 +41,7 @@ def remove_outside_of_min_and_max(rate):
 
 filtered_death_rates = list(filter(remove_outside_of_min_and_max, diabetes_df['RATE']))#[15, 22, 24, 26, 28, 30, 39]
 # Convert to DataFrame
-filtered_death_rates = pd.DataFrame (filtered_death_rates, columns = ['RATE'])
+filtered_death_rates = pd.DataFrame(filtered_death_rates, columns = ['RATE'])
 
 
 st.sidebar.write("Add To Individual Lifestyles & Diabetes Graph")
@@ -55,33 +58,38 @@ if st.sidebar.checkbox("🩺Has Healthcare"):
 if st.sidebar.checkbox("🧠Mental Health"):
     "Mental Health should be toggled"
 
-st.sidebar.write("Add To Diabetes: Age & Sex Graph")
-if st.sidebar.checkbox("18-24"):
-    "18-24 should be toggled"
-if st.sidebar.checkbox("25-29"):
-    "25-29 should be toggled"
-if st.sidebar.checkbox("30-34"):
-    "30-34 should be toggled"
-if st.sidebar.checkbox("35-39"):
-    "35-39 should be toggled"
-if st.sidebar.checkbox("40-44"):
-    "40-44 should be toggled"
-if st.sidebar.checkbox("45-49"):
-    "45-49 should be toggled"
-if st.sidebar.checkbox("50-54"):
-    "50-54 should be toggled"
-if st.sidebar.checkbox("55-59"):
-    "55-59 should be toggled"
-if st.sidebar.checkbox("60-64"):
-    "60-64 should be toggled"
-if st.sidebar.checkbox("65-69"):
-    "65-69 should be toggled"
-if st.sidebar.checkbox("70-74"):
-    "70-74 should be toggled"
-if st.sidebar.checkbox("75-79"):
-    "75-79 should be toggled"
-if st.sidebar.checkbox("> 80"):
-    "> 80 should be toggled"
+
+minAgeGroup, maxAgeGroup = st.sidebar.slider(
+    "Age Groups",
+    18, 80,
+    value=[18, 80],
+)
+# if st.sidebar.checkbox("18-24"):
+#     "18-24 should be toggled"
+# if st.sidebar.checkbox("25-29"):
+#     "25-29 should be toggled"
+# if st.sidebar.checkbox("30-34"):
+#     "30-34 should be toggled"
+# if st.sidebar.checkbox("35-39"):
+#     "35-39 should be toggled"
+# if st.sidebar.checkbox("40-44"):
+#     "40-44 should be toggled"
+# if st.sidebar.checkbox("45-49"):
+#     "45-49 should be toggled"
+# if st.sidebar.checkbox("50-54"):
+#     "50-54 should be toggled"
+# if st.sidebar.checkbox("55-59"):
+#     "55-59 should be toggled"
+# if st.sidebar.checkbox("60-64"):
+#     "60-64 should be toggled"
+# if st.sidebar.checkbox("65-69"):
+#     "65-69 should be toggled"
+# if st.sidebar.checkbox("70-74"):
+#     "70-74 should be toggled"
+# if st.sidebar.checkbox("75-79"):
+#     "75-79 should be toggled"
+# if st.sidebar.checkbox("> 80"):
+#     "> 80 should be toggled"
 
 st.sidebar.write("Effects of Lifestyle")
 lifeStyleChoice = st.sidebar.radio("Lifestyle:",
@@ -90,6 +98,9 @@ lifeStyleChoice = st.sidebar.radio("Lifestyle:",
 #############
 # DASHBOARD #
 #############
+
+# Layout stuff
+col1, col2 = st.columns(2)
 
 def display_map(df, deathRate):
     # df = df[(df['RATE'] == deathRate)]
@@ -119,5 +130,24 @@ def display_map(df, deathRate):
 
 st.title("Interactive dashboard of diabetes in the US")
 
-# Display our folium map
-display_map(diabetes_df, filtered_death_rates)
+
+with col1:
+    # 📈 Display our folium map #
+    display_map(diabetes_df, filtered_death_rates)
+
+    # 📈 Display our area chart #
+    chart_data = pd.DataFrame(
+        np.random.randn(20, 2),
+        columns=['♂️', '♀️'])
+
+with col2:
+    st.area_chart(chart_data)
+
+    # 📈 Display our bar chart #
+    chart_data = pd.DataFrame(
+        np.random.randn(20, 3),
+        columns=["a", "b", "c"])
+
+    st.bar_chart(chart_data)
+
+    # 📈 Display our heat map #
