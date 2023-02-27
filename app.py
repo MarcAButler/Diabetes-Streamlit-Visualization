@@ -3,8 +3,16 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import folium
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from folium.features import GeoJsonTooltip
 from streamlit_folium import st_folium
+from io import BytesIO
+
+
+# Use the full page instead of a narrow central column
+st.set_page_config(layout="wide")
 
 ########
 # DATA #
@@ -28,8 +36,9 @@ geojson_no_id = geojson.to_json(drop_id=True)
 
 minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
     "Average Death Rate 💀 (%)",
-    15, 39,
-    value=[15, 39],
+    # 15, 39,
+    0, 100,
+    value=[0, 100],
 )
 
 def remove_outside_of_min_and_max(rate):
@@ -99,8 +108,6 @@ lifeStyleChoice = st.sidebar.radio("Lifestyle:",
 # DASHBOARD #
 #############
 
-# Layout stuff
-col1, col2 = st.columns(2)
 
 def display_map(df, deathRate):
     # df = df[(df['RATE'] == deathRate)]
@@ -125,29 +132,51 @@ def display_map(df, deathRate):
 
     folium.LayerControl().add_to(map)
     
-    st.write("Diabetes Map")
-    st_map = st_folium(map, width=700, height=450)
-
-st.title("Interactive dashboard of diabetes in the US")
+    # st.write("Diabetes Map")
+    st_map = st_folium(map, width=600, height=280)
 
 
-with col1:
-    # 📈 Display our folium map #
-    display_map(diabetes_df, filtered_death_rates)
+# Layout stuff #
 
-    # 📈 Display our area chart #
-    chart_data = pd.DataFrame(
-        np.random.randn(20, 2),
-        columns=['♂️', '♀️'])
+# col1, col2 = st.columns((2, 1))
+container = st.container()
+col1, col2 = st.columns((1, 1))
 
-with col2:
-    st.area_chart(chart_data)
+with container:
 
-    # 📈 Display our bar chart #
-    chart_data = pd.DataFrame(
-        np.random.randn(20, 3),
-        columns=["a", "b", "c"])
+    container.title("Interactive dashboard of diabetes in the US")
+    # col1.header("Interactive dashboard of diabetes in the US")
+    with col1:
+        
+        # 📈 Display our folium map #
+        display_map(diabetes_df, filtered_death_rates)
 
-    st.bar_chart(chart_data)
+        # 📈 Display our area chart #
+        chart_data = pd.DataFrame(
+            np.random.randn(20, 2),
+            columns=['♂️', '♀️'])
+        
+        st.area_chart(chart_data, height=200)
 
-    # 📈 Display our heat map #
+    with col2:
+        
+
+        # 📈 Display our bar chart #
+        chart_data = pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=["a", "b", "c"])
+
+        st.bar_chart(chart_data, height=300)
+
+        # 📈 Display our heat map #
+        
+        correlation = diabetes_binary_df[["Diabetes_binary", "Veggies"]]
+
+        fig, ax = plt.subplots(figsize=(8, 2.5))
+        sns.heatmap(correlation, ax=ax)
+        
+        # Based on this answer: https://discuss.streamlit.io/t/cannot-change-matplotlib-figure-size/10295/8
+        # st.pyplot(fig)
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        st.image(buf)
