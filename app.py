@@ -68,11 +68,30 @@ if st.sidebar.checkbox("🧠Mental Health"):
     "Mental Health should be toggled"
 
 
-minAgeGroup, maxAgeGroup = st.sidebar.slider(
+ageRanges = {
+    "18-24": 1,
+    "25-29": 2,
+    "30-34": 3,
+    "35-39": 4,
+    "40-44": 5,
+    "45-49": 6,
+    "50-54": 7,
+    "55-59": 8,
+    "60-64": 9,
+    "65-69": 10,
+    "70-74": 11,
+    "75-79": 12,
+    "> 80": 13,
+}
+minAgeGroup, maxAgeGroup = st.sidebar.select_slider(
     "Age Groups",
-    18, 80,
-    value=[18, 80],
+    # 18, 80,
+    # value=[18, 80],
+    value=["18-24", "> 80"],
+    options=ageRanges
 )
+
+
 # if st.sidebar.checkbox("18-24"):
 #     "18-24 should be toggled"
 # if st.sidebar.checkbox("25-29"):
@@ -154,9 +173,11 @@ with container:
         # 📈 Display our area chart #
         chart_data = pd.DataFrame(
             np.random.randn(20, 2),
+            # diabetes_binary_df[["Age", "Diabetes_binary"]],
+            # [diabetes_binary_df["Diabetes_binary"].values.toList(), diabetes_binary_df["Age"].values.toList()],
             columns=['♂️', '♀️'])
         
-        st.area_chart(chart_data, height=200)
+        st.area_chart(diabetes_binary_df[["Diabetes_binary", "Age"]], height=200)
 
     with col2:
         
@@ -164,13 +185,14 @@ with container:
         # 📈 Display our bar chart #
         chart_data = pd.DataFrame(
             np.random.randn(20, 3),
+            # [diabetes_binary_df["Diabetes_binary"].toList(), diabetes_binary_df["Age"].toList()],
             columns=["a", "b", "c"])
 
         st.bar_chart(chart_data, height=300)
 
         # 📈 Display our heat map #
         
-        correlation = diabetes_binary_df[["Diabetes_binary", "Veggies"]]
+        correlation = diabetes_binary_df[["Diabetes_binary", lifeStyleChoice]]
 
         fig, ax = plt.subplots(figsize=(8, 2.5))
         sns.heatmap(correlation, ax=ax)
