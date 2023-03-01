@@ -211,7 +211,7 @@ def display_map(df, deathRate):
     # df = df[(df['RATE'] == deathRate)]
     df['RATE'] = deathRate
 
-    map = folium.Map(location=[48, -102], zoom_start=3)
+    map = folium.Map(location=[40, -100], zoom_start=3)
 
     # scale = (df['RATE']).quantile((0,0.1,0.75,0.9,0.98,1)).tolist()
 
@@ -231,7 +231,7 @@ def display_map(df, deathRate):
     folium.LayerControl().add_to(map)
     
     # st.write("Diabetes Map")
-    st_map = st_folium(map, width=600, height=280)
+    st_map = st_folium(map, width=500, height=280)
 
 
 # Layout stuff #
