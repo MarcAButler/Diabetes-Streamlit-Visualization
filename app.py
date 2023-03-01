@@ -74,11 +74,13 @@ geojson_no_id = geojson.to_json(drop_id=True)
 # INPUTS #
 ##########
 
+st.sidebar.write("Average Death Rate 💀 (%)")
 minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
     "Average Death Rate 💀 (%)",
     # 15, 39,
     0, 100,
     value=[0, 100],
+    label_visibility="collapsed"
 )
 
 def remove_outside_of_min_and_max(rate):
@@ -144,10 +146,12 @@ ageRanges = [
     "> 80"
 ]
 
+st.sidebar.write("Age Groups")
 minAgeGroup, maxAgeGroup = st.sidebar.select_slider(
-    "Age Groups",
+    label="",
     value=["18-24", "> 80"],
-    options=ageRanges
+    options=ageRanges,
+    label_visibility="collapsed"
 )
 
 minIndex = ageRanges.index(minAgeGroup)
@@ -160,9 +164,7 @@ diabetes_binary_df = diabetes_binary_df[diabetes_binary_df["Age"].isin(ageRanges
 
 
 st.sidebar.write("Effects of Lifestyle")
-lifeStyleChoice = st.sidebar.radio("Lifestyle:",
-                                   ("Fruits", "Veggies")
-                                   )
+lifeStyleChoice = st.sidebar.radio(label="", options=("Fruits", "Veggies"), label_visibility="collapsed")
 #############
 # DASHBOARD #
 #############
@@ -323,7 +325,7 @@ with container:
 
         try:
             lifeStyleSumGraphs = alt.vconcat(lifeStyleGraphSelections[0], lifeStyleGraphSelections[1])
-            st.altair_chart(lifeStyleSumGraphs)
+            st.altair_chart(lifeStyleSumGraphs, use_container_width=True)
             
         except:
             print("could not print sum graphs")
@@ -352,4 +354,4 @@ with container:
             height=300
         )
 
-        st.altair_chart(heatMap)
+        st.altair_chart(heatMap, use_container_width=True)
