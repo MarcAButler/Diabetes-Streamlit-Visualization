@@ -5,6 +5,7 @@ import geopandas as gpd
 import folium
 import seaborn as sns
 import matplotlib.pyplot as plt
+import altair as alt
 from matplotlib import rcParams
 from folium.features import GeoJsonTooltip
 from streamlit_folium import st_folium
@@ -42,7 +43,6 @@ minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
 )
 
 def remove_outside_of_min_and_max(rate):
-    print("rate", rate)
     if rate >= minAvgDeathRate and rate <= maxAvgDeathRate:
         return True
     else:
@@ -171,13 +171,44 @@ with container:
         display_map(diabetes_df, filtered_death_rates)
 
         # 📈 Display our area chart #
-        chart_data = pd.DataFrame(
-            np.random.randn(20, 2),
-            # diabetes_binary_df[["Age", "Diabetes_binary"]],
-            # [diabetes_binary_df["Diabetes_binary"].values.toList(), diabetes_binary_df["Age"].values.toList()],
-            columns=['♂️', '♀️'])
+        # chart_data = pd.DataFrame(
+        #     np.random.randn(20, 2),
+        #     # diabetes_binary_df[["Age", "Diabetes_binary"]],
+        #     # [diabetes_binary_df["Diabetes_binary"].values.toList(), diabetes_binary_df["Age"].values.toList()],
+        #     columns=['♂️', '♀️'])
         
-        st.area_chart(diabetes_binary_df[["Diabetes_binary", "Age"]], height=200)
+        chart_data = pd.DataFrame(
+            np
+        )
+
+        chart_data = diabetes_binary_df[["Diabetes_binary", "Age"]]
+        # chart_data = diabetes_binary_df[["Diabetes_binary", "Age", "Sex"]]
+       
+        # st.write(chart_data.head())
+        
+        chart_data = chart_data.groupby('Age', as_index=False).sum()
+        # chart_data = chart_data.groupby(["Age", "Sex"], as_index=False).sum()
+
+        chart_data.rename(columns={"A": "a", "B": "c"})
+
+        st.write(chart_data.groupby("Age", as_index=False).sum().head())
+        # st.write(chart_data.groupby(["Age", "Sex"], as_index=False).sum().head())
+
+
+        # Add Sex to chart_data
+        # chart_data["Sex"] = ['♂️', '♀️']
+        # chart_data.columns=['♂️', '♀️']
+
+        # Use go from plotly.graph._objs as go function for plan b
+        st.area_chart(
+            # diabetes_binary_df[["Age", "Diabetes_binary"]],
+            # [diabetes_binary_df["Diabetes_binary"].sum(), diabetes_binary_df["Age"]],
+            chart_data,
+            # chart_data.groupby('Age').sum(),
+            height=200,
+            x="Age",
+            y="Diabetes_binary"
+        )
 
     with col2:
         
@@ -191,7 +222,6 @@ with container:
         st.bar_chart(chart_data, height=300)
 
         # 📈 Display our heat map #
-        
         correlation = diabetes_binary_df[["Diabetes_binary", lifeStyleChoice]]
 
         fig, ax = plt.subplots(figsize=(8, 2.5))
