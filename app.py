@@ -51,24 +51,51 @@ ageGroupMapping = {
     13: "> 80" 
 }
 
-diabetes_binary_df = pd.read_csv("diabetes_binary_split_health_indicators.csv")
+@st.cache(ttl=24*60*60)  # No need for TTL this time; It's static data
+def get_diabetes_binary_df():
+    diabetes_data = pd.read_csv("diabetes_binary_split_health_indicators.csv")
+	
+    # Loop through sex to change binary to strings
+    diabetes_data["Sex"].replace({0.0: "♀️ Female", 1.0: "♂️ Male"}, inplace=True)
 
-# Loop through sex to change binary to strings
-diabetes_binary_df["Sex"].replace({0.0: "♀️ Female", 1.0: "♂️ Male"}, inplace=True)
+    # Loop through age to change binary to strings
+    diabetes_data["Age"].replace(ageGroupMapping, inplace=True)
+    return diabetes_data
+
+diabetes_binary_df = get_diabetes_binary_df()
 
 
-# Loop through age to change binary to strings
-diabetes_binary_df["Age"].replace(ageGroupMapping, inplace=True)
+# @st.cache(ttl=24*60*60)  # Use TTL
+# def get_diabetes_geo_df():
+#     return pd.read_csv("diabetes_mortality_by_state.csv")
+
+diabetes_geo_df = pd.read_csv("diabetes_mortality_by_state.csv")
 
 
-diabetes_df = pd.read_csv("diabetes_mortality_by_state.csv")
+@st.cache(ttl=24*60*60)  # Use TTL
+def get_usa_geo_json_df():
+    # Read the geoJSON file using geopandas
+    geojson = gpd.read_file(r"gadm41_USA_2.json")
+    # geojson = gpd.read_file('cb_2018_us_state_500k/cb_2018_us_state_500k.shp')
+    geojson_no_id = geojson.to_json(drop_id=True)
+    return geojson_no_id
 
 
-# Read the geoJSON file using geopandas
-geojson = gpd.read_file(r"gadm41_USA_2.json")
+useGeoJson = get_usa_geo_json_df()
 
-# geojson = gpd.read_file('cb_2018_us_state_500k/cb_2018_us_state_500k.shp')
-geojson_no_id = geojson.to_json(drop_id=True)
+def attemptToRenderSumGraphs(lifeStyleSumGraphs):
+    try:
+        lifeStyleSumGraphs = alt.vconcat(lifeStyleGraphSelections[0], lifeStyleGraphSelections[1])
+        st.altair_chart(lifeStyleSumGraphs, use_container_width=True)
+        return
+    except:
+        print("could not conconate sum graphs -- attempting to render single graph")
+        # Fallback to a displaying a single sum graph
+        pass
+    try:
+        st.altair_chart(lifeStyleGraphSelections[0], use_container_width=True)
+    except:
+        print("could not print sum graphs")
 
 ##########
 # INPUTS #
@@ -83,15 +110,17 @@ minAvgDeathRate, maxAvgDeathRate = st.sidebar.slider(
     label_visibility="collapsed"
 )
 
-def remove_outside_of_min_and_max(rate):
-    if rate >= minAvgDeathRate and rate <= maxAvgDeathRate:
-        return True
-    else:
-        return False
+# def remove_outside_of_min_and_max(rate):
+#     if rate >= minAvgDeathRate and rate <= maxAvgDeathRate:
+#         return True
+#     else:
+#         return False
 
-filtered_death_rates = list(filter(remove_outside_of_min_and_max, diabetes_df['RATE']))#[15, 22, 24, 26, 28, 30, 39]
-# Convert to DataFrame
-filtered_death_rates = pd.DataFrame(filtered_death_rates, columns = ['RATE'])
+# filtered_death_rates = list(filter(remove_outside_of_min_and_max, diabetes_geo_df['RATE']))
+# # Convert to DataFrame
+# filtered_death_rates = pd.DataFrame(filtered_death_rates, columns = ['RATE'])
+diabetes_geo_df = diabetes_geo_df[diabetes_geo_df["RATE"] > minAvgDeathRate]
+diabetes_geo_df = diabetes_geo_df[diabetes_geo_df["RATE"] < maxAvgDeathRate]
 
 
 numOfBoxesChecked = 0
@@ -169,13 +198,15 @@ lifeStyleChoice = st.sidebar.radio(label="", options=("Fruits", "Veggies"), labe
 # DASHBOARD #
 #############
 
-def display_map(df, deathRate):
-    df['RATE'] = deathRate
+def display_map(df):
+    # df['RATE'] = deathRate
+
+    # st.write("follium df: ", df)
 
     map = folium.Map(location=[40, -100], zoom_start=3)
 
     folium.Choropleth(
-        geo_data=geojson_no_id,
+        geo_data=useGeoJson,
         name="choropleth",
         data=df,
         columns=["STATE", "RATE"],
@@ -203,7 +234,7 @@ with container:
     with col1:
         
         # 📈 Display our folium map #
-        display_map(diabetes_df, filtered_death_rates)
+        display_map(diabetes_geo_df)
 
         # 📈 Display our area chart #
         chart_data = diabetes_binary_df[["Diabetes_binary", "Age", "Sex"]]
@@ -323,15 +354,10 @@ with container:
             )
             lifeStyleGraphSelections.append(sumOfMentalHealthChart)
 
-        try:
-            lifeStyleSumGraphs = alt.vconcat(lifeStyleGraphSelections[0], lifeStyleGraphSelections[1])
-            st.altair_chart(lifeStyleSumGraphs, use_container_width=True)
-            
-        except:
-            print("could not print sum graphs")
+
+        attemptToRenderSumGraphs(lifeStyleGraphSelections)
 
         # 📈 Display our heat map #
-
 
         # Old Matplotlib version #
         # correlation = diabetes_binary_df[["Diabetes_binary", lifeStyleChoice]]
