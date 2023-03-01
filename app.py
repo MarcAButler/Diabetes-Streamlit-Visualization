@@ -13,7 +13,44 @@ from io import BytesIO
 
 
 # Use the full page instead of a narrow central column
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title='Interactive Diabetes Dashboard',
+    layout='wide',
+    # page_icon=':rocket:'
+)
+
+hide_streamlit_style = """
+            <style>
+            footer {display: none;}
+            section > div {{
+                padding: 2rem 1rem 2rem;
+            }}
+            .block-container {padding: 2rem 1rem 2rem;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
+# css = '''
+# <style>
+# section.main > div:has(~ footer ) {
+#     padding-bottom: 5px;
+# }
+# </style>
+# '''
+# st.markdown(css, unsafe_allow_html=True)
+
+# st.markdown(
+#         f'''
+#         <style>
+#             .reportview-container .sidebar-content {{
+#                 padding-top: {1}rem;
+#             }}
+#             .reportview-container .main .block-container {{
+#                 padding-top: {1}rem;
+#             }}
+#         </style>
+#         ''',unsafe_allow_html=True)
+
 
 ########
 # DATA #
@@ -80,37 +117,41 @@ filtered_death_rates = list(filter(remove_outside_of_min_and_max, diabetes_df['R
 filtered_death_rates = pd.DataFrame(filtered_death_rates, columns = ['RATE'])
 
 
+numOfBoxesChecked = 0
+allowedNumberOfCheckboxes = 2
+
+includeFruits = False
+includeVeggies = False
+includePhysicallyActive = False
+includeSmoker = False
+includeHasHealthCare = False
+includeMentalHealth = False
+
 st.sidebar.write("Add To Individual Lifestyles & Diabetes Graph")
-if st.sidebar.checkbox("🍎Fruits"):
-    "Fruits should be toggled"
-if st.sidebar.checkbox("🥕Veggies"):
-    "Veggies should be toggled"
-if st.sidebar.checkbox("👟Physically Active"):
-    "Physically Active should be toggled"
-if st.sidebar.checkbox("🚬Smoker"):
-    "Smoker should be toggled"
-if st.sidebar.checkbox("🩺Has Healthcare"):
-    "Physically Active should be toggled"
-if st.sidebar.checkbox("🧠Mental Health"):
-    "Mental Health should be toggled"
+if st.sidebar.checkbox("🍎Fruits", value=True, disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includeFruits = True
 
+if st.sidebar.checkbox("🥕Veggies", value=True, disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includeVeggies = True
 
+if st.sidebar.checkbox("👟Physically Active", disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includePhysicallyActive = True
 
-# ageRanges = {
-#     "18-24": 1,
-#     "25-29": 2,
-#     "30-34": 3,
-#     "35-39": 4,
-#     "40-44": 5,
-#     "45-49": 6,
-#     "50-54": 7,
-#     "55-59": 8,
-#     "60-64": 9,
-#     "65-69": 10,
-#     "70-74": 11,
-#     "75-79": 12,
-#     "> 80": 13,
-# }
+if st.sidebar.checkbox("🚬Smoker", disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includeSmoker = True
+
+if st.sidebar.checkbox("🩺Has Healthcare", disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includeHasHealthCare = True
+
+if st.sidebar.checkbox("🧠Mental Health", disabled = True if numOfBoxesChecked >= allowedNumberOfCheckboxes else False):
+    numOfBoxesChecked += 1
+    includeMentalHealth = True
+
 
 ageRanges = [
     "18-24",
@@ -158,33 +199,6 @@ diabetes_binary_df = diabetes_binary_df[diabetes_binary_df["Age"].isin(ageRanges
 # diabetes_binary_df['Age'] = pd.DataFrame(filtered_age_groups, columns = ['RATE'])
 
 
-# if st.sidebar.checkbox("18-24"):
-#     "18-24 should be toggled"
-# if st.sidebar.checkbox("25-29"):
-#     "25-29 should be toggled"
-# if st.sidebar.checkbox("30-34"):
-#     "30-34 should be toggled"
-# if st.sidebar.checkbox("35-39"):
-#     "35-39 should be toggled"
-# if st.sidebar.checkbox("40-44"):
-#     "40-44 should be toggled"
-# if st.sidebar.checkbox("45-49"):
-#     "45-49 should be toggled"
-# if st.sidebar.checkbox("50-54"):
-#     "50-54 should be toggled"
-# if st.sidebar.checkbox("55-59"):
-#     "55-59 should be toggled"
-# if st.sidebar.checkbox("60-64"):
-#     "60-64 should be toggled"
-# if st.sidebar.checkbox("65-69"):
-#     "65-69 should be toggled"
-# if st.sidebar.checkbox("70-74"):
-#     "70-74 should be toggled"
-# if st.sidebar.checkbox("75-79"):
-#     "75-79 should be toggled"
-# if st.sidebar.checkbox("> 80"):
-#     "> 80 should be toggled"
-
 st.sidebar.write("Effects of Lifestyle")
 lifeStyleChoice = st.sidebar.radio("Lifestyle:",
                                    ("Fruits", "Veggies")
@@ -192,7 +206,6 @@ lifeStyleChoice = st.sidebar.radio("Lifestyle:",
 #############
 # DASHBOARD #
 #############
-
 
 def display_map(df, deathRate):
     # df = df[(df['RATE'] == deathRate)]
@@ -291,21 +304,149 @@ with container:
         
 
         # 📈 Display our bar chart #
-        chart_data = pd.DataFrame(
-            np.random.randn(20, 3),
-            # [diabetes_binary_df["Diabetes_binary"].toList(), diabetes_binary_df["Age"].toList()],
-            columns=["a", "b", "c"])
+        # chart_data = pd.DataFrame(
+        #     np.random.randn(20, 3),
+        #     # [diabetes_binary_df["Diabetes_binary"].toList(), diabetes_binary_df["Age"].toList()],
+        #     columns=["a", "b", "c"])
 
-        st.bar_chart(chart_data, height=300)
+        # st.bar_chart(chart_data, height=300)
+
+        activeLifeStyleChoices = diabetes_binary_df[["Diabetes_binary", "Fruits", "Veggies", "PhysActivity", "Smoker", "AnyHealthcare", "MentHlth", "Sex"]]
+        # activeLifeStyleChoices = activeLifeStyleChoices.groupby(["Fruits"], as_index=False).sum()
+
+        # st.write("activeLifeStyleChoices: ", activeLifeStyleChoices.head())
+
+        # Loop through activeLifeStyleChoices to change binary to strings
+        activeLifeStyleChoices["Diabetes_binary"].replace({0.0: "❌ No Diabetes", 1.0: "⭕ Has Diabetes"}, inplace=True)
+
+        # Control which charts to show to save space
+        lifeStyleGraphSelections = []
+
+        if (includeFruits == True):
+            sumOfFruitsChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(Fruits):Q", title="Fruit Eating Population"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(Fruits):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfFruitsChart)
+        if (includeVeggies == True):
+            sumOfVeggiesChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(Veggies):Q", title="Vegetable Eating Population"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(Veggies):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfVeggiesChart)
+        if (includePhysicallyActive == True):
+            sumOfPhysicallyActiveChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(PhysActivity):Q", title="Physically Active Population"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(PhysActivity):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfPhysicallyActiveChart)
+        if (includeSmoker == True):
+            sumOfSmokerChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(Smoker):Q", title="Tobaco Smoking Population"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(Smoker):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfSmokerChart)
+        if (includeHasHealthCare == True):
+            sumOfHealthCareChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(AnyHealthcare):Q", title="Population w/ Health Care"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(AnyHealthcare):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfHealthCareChart)
+        if (includeMentalHealth == True):
+            sumOfMentalHealthChart = alt.Chart(activeLifeStyleChoices).mark_bar(
+                cornerRadiusTopLeft=3,
+                cornerRadiusTopRight=3
+            ).encode(
+                alt.X("sum(MentHlth):Q", title="Population w/ Mental Health Affairs"),
+                alt.Y("Diabetes_binary:O", title="Diabetes", stack=None),
+                color=alt.Color("sum(MentHlth):O", title="",
+                    legend=alt.Legend(orient='none',
+                    legendX=130, legendY=-60,
+                    direction='horizontal',
+                    titleAnchor='middle'
+                ))
+            )
+            lifeStyleGraphSelections.append(sumOfMentalHealthChart)
+
+
+
+        try:
+            # lifeStyleSumGraphs = alt.vconcat(sumOfFruitsChart, sumOfVeggiesChart)
+            lifeStyleSumGraphs = alt.vconcat(lifeStyleGraphSelections[0], lifeStyleGraphSelections[1])
+            st.altair_chart(lifeStyleSumGraphs)
+            
+        except:
+            print("could not print sum graphs")
 
         # 📈 Display our heat map #
-        correlation = diabetes_binary_df[["Diabetes_binary", lifeStyleChoice]]
 
-        fig, ax = plt.subplots(figsize=(8, 2.5))
-        sns.heatmap(correlation, ax=ax)
+
+        # Old Matplotlib version #
+        # correlation = diabetes_binary_df[["Diabetes_binary", lifeStyleChoice]]
+
+        # fig, ax = plt.subplots(figsize=(8, 2.5))
+        # sns.heatmap(correlation, ax=ax)
         
-        # Based on this answer: https://discuss.streamlit.io/t/cannot-change-matplotlib-figure-size/10295/8
-        # st.pyplot(fig)
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        st.image(buf)
+        # # Based on this answer: https://discuss.streamlit.io/t/cannot-change-matplotlib-figure-size/10295/8
+        # # st.pyplot(fig)
+        # buf = BytesIO()
+        # fig.savefig(buf, format="png")
+        # st.image(buf)
+
+        # activeLifeStyleChoices["Fruits"].agg(['sum', 'min'])
+
+        heatMap = alt.Chart(activeLifeStyleChoices).mark_rect().encode(
+            alt.X("Diabetes_binary:O", title="Diabetes", axis=alt.Axis(labelAngle=-45)),
+            alt.Y("Sex:O", title=""),
+            color=alt.Color(f"sum({lifeStyleChoice}):Q", title=f"Total {lifeStyleChoice}")
+        ).properties(
+            width=400,
+            height=300
+        )
+
+        st.altair_chart(heatMap)
