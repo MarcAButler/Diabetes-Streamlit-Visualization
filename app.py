@@ -51,7 +51,7 @@ ageGroupMapping = {
     13: "> 80" 
 }
 
-@st.cache(ttl=24*60*60)  # No need for TTL this time; It's static data
+@st.cache_data(ttl=24*60*60)  # No need for TTL this time; It's static data
 def get_diabetes_binary_df():
     diabetes_data = pd.read_csv("diabetes_binary_split_health_indicators.csv")
 	
@@ -72,7 +72,7 @@ diabetes_binary_df = get_diabetes_binary_df()
 diabetes_geo_df = pd.read_csv("diabetes_mortality_by_state.csv")
 
 
-@st.cache(ttl=24*60*60)  # Use TTL
+@st.cache_data(ttl=24*60*60)  # Use TTL
 def get_usa_geo_json_df():
     # Read the geoJSON file using geopandas
     geojson = gpd.read_file(r"gadm41_USA_2.json")
